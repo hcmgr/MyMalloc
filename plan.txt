@@ -1,0 +1,11 @@
+- heap inintialised by program
+- grow heap using sbrk()
+- they want N bytes
+- we allocate N + M bytes, where:
+    - M = num. bytes needed for allocation metadata
+
+- allocation metadata:
+    - size 
+
+- free():
+    - free'ing 
