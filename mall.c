@@ -2,7 +2,12 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <aio.h>
+#include <string.h>
+
 #include "helper.h"
+
+// number of pages allocated to store our PageHeader list
+#define HEADER_NUM_PAGES 4 
 
 /**
  * Singelton structure holding the linked list of PageHeader's.
@@ -11,7 +16,7 @@
 */
 typedef struct HeapHeader {
     struct PageHeader *head;
-    int numPageHeaders;
+    int numPages;
 } HeapHeader;
 static struct HeapHeader heapHeader = {NULL, 0};
 
@@ -33,11 +38,14 @@ typedef struct PageHeader {
     // next page
     struct PageHeader *next;
 
+    // pointer to page on heap
+    void *pagePtr;
+
 } PageHeader;
 
 int initialise_heap_header() {
-    if (heapHeader.head || heapHeader.numPageHeaders) {
-        perror("Heap header already initialised\n");
+    if (heapHeader.head || heapHeader.numPages) {
+        perror("Heap header already initialised");
         return 1;
     }
 
@@ -46,26 +54,34 @@ int initialise_heap_header() {
         return 1;
     }
 
-    // allocate 2 pages for the list of PageHeader's
-    PageHeader *first = sbrk(2 * pageSize);
-    if (first == (void*)-1) {
+    // allocate pages to store our PageHeader list
+    PageHeader *firstHeader = sbrk(HEADER_NUM_PAGES * pageSize);
+    if (firstHeader == (void*)-1) {
         perror("Error allocating first page");
         return 1;
     }
 
-    int numPageHeaders = (2 * pageSize) / (sizeof(PageHeader));
-    heapHeader.head = first;
-    heapHeader.numPageHeaders = numPageHeaders;
-    
-    // initialise all pages as free
-    PageHeader *curr = heapHeader.head;
-    int i = 0;
-    while (i < numPageHeaders) {
-        curr->isFree = 1;
-        curr->numPagesInSection = 1;
-        curr->next = curr + 1;
+    int numPages = (HEADER_NUM_PAGES * pageSize) / (sizeof(PageHeader));
+    heapHeader.head = firstHeader;
+    heapHeader.numPages = numPages;
 
-        curr = curr->next;
+    // allocate heap pages themselves
+    void* currPage = sbrk(numPages * pageSize);
+
+    // initialise all pages and corresponding page headers
+    PageHeader *currHeader = heapHeader.head;
+    int i = 0;
+    while (i < numPages) {
+        currHeader->isFree = 1;
+        currHeader->numPagesInSection = 1;
+        currHeader->next = currHeader + 1;
+        currHeader->pagePtr = currPage;
+
+        memset(currPage, 0, pageSize);
+
+        currHeader = currHeader->next;
+        currPage = currPage + pageSize;
+
         i++;
     }
     return 0;
