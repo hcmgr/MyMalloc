@@ -6,12 +6,12 @@
 /**
  * Returns system page size
 */
-int get_system_page_size() {
+int sys_page_size() {
     int page_size = getpagesize();
 
     if (page_size == -1) {
         perror("Failed to get page size");
-        return 1;
+        return 0;
     }
 
     return page_size;

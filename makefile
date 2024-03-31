@@ -5,10 +5,12 @@ CFLAGS = -Wall -Wextra -Werror -g
 # Linker flags
 LDFLAGS =
 
+PROG = mall
+
 # Source directory
 SRC_DIR = .
 # Object directory
-OBJ_DIR = .
+OBJ_DIR = obj
 # Output directory
 OUT_DIR = .
 
@@ -17,7 +19,7 @@ SRCS = $(wildcard $(SRC_DIR)/*.c)
 # List of object files
 OBJS = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 # Name of the executable
-EXEC = $(OUT_DIR)/my_program
+EXEC = $(OUT_DIR)/$(PROG)
 
 # Build target
 all: $(EXEC)
@@ -32,4 +34,4 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 
 # Clean up
 clean:
-	$(RM) -r $(OBJ_DIR)/* $(OUT_DIR)/*
+	rm -rf *.out *.o $(PROG) 
