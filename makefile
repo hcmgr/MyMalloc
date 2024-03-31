@@ -1,7 +1,8 @@
 # Compiler
 CC = gcc
 # Compiler flags
-CFLAGS = -Wall -Wextra -Werror -g
+# CFLAGS = -Wall -Wextra -Werror -g
+CLAGS = 
 # Linker flags
 LDFLAGS =
 
