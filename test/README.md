@@ -1,6 +1,6 @@
-### General-purpose testing library I use for a lot of my projects
+### General-purpose testing library I use for a lot of my projects ###
 
-#### Structure
+#### Structure ####
 
 - test.c / test.h:
     - where all tests are specified
