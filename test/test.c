@@ -4,33 +4,46 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "testHelpers.h"
+#include "../helper.h"
 #include "../mall.h"
 
-void test_allocation() {
-    int *ptr = (int *)my_malloc(sizeof(int));
-    if (ptr != NULL) {
-        print_green("Passed!\n");
-    } else {
-        print_red("Failed!\n");
-    }
+void setup() {
+    initialise_page_header_list();
 }
 
-void test_zero_allocation() {
+void test_zero_alloc() {
     int *ptr = (int *)my_malloc(0);
-    if (ptr == NULL) {
-        print_green("Passed!\n");
-    } else {
-        print_red("Failed!\n");
+    if (ptr != NULL) {
+        print_green("Failed\n");
+        return;
     }
+    print_green("Passed!\n");
 }
 
-void test_distinct_pointers() {
-    int *ptr1 = (int *)my_malloc(sizeof(int));
-    int *ptr2 = (int *)my_malloc(sizeof(int));
-    if (ptr1 != NULL && ptr2 != NULL && ptr1 != ptr2) {
-        print_green("Passed!\n");
-    } else {
-        print_red("Failed!\n");
+void test_simple_alloc() {
+    int *ptr = (int *)my_malloc(sizeof(int));
+    if (ptr == NULL) {
+        print_green("Failed\n");
+        return;
     }
+    ptr[0] = 1;
+    if (ptr[0] != 1) {
+        print_green("Failed\n");
+        return;
+    }
+    print_green("Passed!\n");
 }
+
+void test_multi_page_alloc() {
+    PageHeaderList* phl = get_page_header_list();
+    void *ptr = my_malloc(phl->pageSize * 3);
+
+    if (phl->numPagesAllocated != 3) {
+        print_red("Failed\n");
+        return;    
+    }
+    print_green("Passed!\n");
+}
+

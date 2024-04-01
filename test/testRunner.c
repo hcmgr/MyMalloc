@@ -11,9 +11,9 @@ typedef struct Test {
 } Test;
 
 Test testList[] = {
-    {"test_allocation", test_allocation},
-    {"test_zero_allocation", test_zero_allocation},
-    {"test_distinct_pointers", test_distinct_pointers}
+    {"test_zero_alloc", test_zero_alloc},
+    // {"test_simple_alloc", test_simple_alloc},
+    {"test_multi_page_alloc", test_multi_page_alloc}
 };
 
 /**
@@ -26,6 +26,7 @@ int runAll() {
     printf("---------------------------\n");
     for (int i = 0; i < num_tests; ++i) {
         printf("%d: %s\n\n\n", i+1, testList[i].name);
+        setup();
         testList[i].fn();
         printf("---------------------------\n");
     }

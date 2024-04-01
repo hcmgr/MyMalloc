@@ -4,54 +4,31 @@
 #include <aio.h>
 #include <string.h>
 
+#include "mall.h"
 #include "helper.h"
 #include "test/testRunner.h"
 
-// number of pages taken up by the PageHeaderList
-#define HEADER_NUM_PAGES 4 
-
-// size of prefix pointer in bytes (see my_malloc())
-#define ALLOC_PREFIX_SIZE 0
-
 /**
- * Singelton structure representing the process' list of PageHeader's.
+ * Singelton PageHeaderList to store the process' list of PageHeader's
  * 
  * List is stored in the first [HEADER_NUM_PAGES] pages of the
  * process-initialised heap.
 */
-typedef struct PageHeaderList {
-    struct PageHeader *head;
-    int numPagesAllocated;
-    int pageSize;
-} PageHeaderList;
 static struct PageHeaderList pageHeaderList = {NULL, 0, 0};
 
 /**
- * Represents a single page allocated on the heap.
- * 
- * Pages are allocated in sections of N pages, where N >= 1.
- * 
- * Pages that are first in their section store a non-zero
- * value for numPagesInSection (see below).
+ * Returns the process' singleton PageHeaderList
 */
-typedef struct PageHeader {
-    // 1 if page un-mapped, 0 otherwise
-    int isFree;
+PageHeaderList* get_page_header_list() {
+    return &pageHeaderList;
+}
 
-    // pointer to page on heap
-    void *pagePtr;
-
-    // number of pages in allocated section (0 if non-first page)
-    int numPagesInSection;
-
-    // next page
-    struct PageHeader *next;
-
-} PageHeader;
-
+/**
+ * Initialises the process' singleton PageHeaderList
+*/
 int initialise_page_header_list() {
+    // PageHeaderList already initialised
     if (pageHeaderList.head || pageHeaderList.numPagesAllocated) {
-        perror("Heap header already initialised");
         return 1;
     }
 
@@ -88,6 +65,9 @@ int initialise_page_header_list() {
     return 0;
 }
 
+/**
+ * Displays the first [limit] PageHeaders from the PageHeaderList
+*/
 void display_page_header_list(int limit) {
     printf("Number of pages allocated: %d\n", pageHeaderList.numPagesAllocated);
     PageHeader *curr = pageHeaderList.head;
@@ -106,6 +86,11 @@ void display_page_header_list(int limit) {
     return;
 }
 
+/**
+ * Allocates [numPages] contiguous pages of memory.
+ * 
+ * Returns a pointer to the first page (at offset 0) on success, NULL otherwise.
+*/
 void* allocate_contiguous_section(PageHeader *firstHeader, int numPages) {
     PageHeader *prevHeader = NULL;
     PageHeader *currHeader = firstHeader;
@@ -142,6 +127,14 @@ void* allocate_contiguous_section(PageHeader *firstHeader, int numPages) {
     return firstHeader->pagePtr;
 }
 
+/**
+ * Allocates [numBytes] bytes and returns a pointer to the allocated memory.
+ * 
+ * Returns a pointer to the allocated memory on success, NULL otherwise.
+ * 
+ * Allocated memory is page-aligned as per sysconf(_SC_PAGESIZE), and the
+ * minimum allocation unit is 1 page.
+*/
 void* my_malloc(int numBytes) {
     if (numBytes == 0) {
         return NULL;
@@ -184,10 +177,14 @@ void* my_malloc(int numBytes) {
     return NULL;
 }
 
-// int my_free(void *ptr) {
-//     return 0;
+/**
+ * Frees the memory space pointed to by ptr, which must have 
+ * been returned by a previous call to my_malloc().
+ */
+int my_free(void *ptr) {
+    return 0;
 
-// }
+}
 
 int main() {
     runAll();
