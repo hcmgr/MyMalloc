@@ -10,7 +10,7 @@
 #define HEADER_NUM_PAGES 4 
 
 // size of prefix pointer in bytes (see my_malloc())
-#define ALLOC_PREFIX_SIZE 8
+#define ALLOC_PREFIX_SIZE 0
 
 /**
  * Singelton structure representing the process' list of PageHeader's.
@@ -20,7 +20,7 @@
 */
 typedef struct PageHeaderList {
     struct PageHeader *head;
-    int numPages;
+    int numPagesAllocated;
     int pageSize;
 } PageHeaderList;
 static struct PageHeaderList pageHeaderList = {NULL, 0, 0};
@@ -49,7 +49,7 @@ typedef struct PageHeader {
 } PageHeader;
 
 int initialise_page_header_list() {
-    if (pageHeaderList.head || pageHeaderList.numPages) {
+    if (pageHeaderList.head || pageHeaderList.numPagesAllocated) {
         perror("Heap header already initialised");
         return 1;
     }
@@ -67,7 +67,7 @@ int initialise_page_header_list() {
     }
 
     pageHeaderList.head = head;
-    pageHeaderList.numPages = 0;
+    pageHeaderList.numPagesAllocated = 0;
     pageHeaderList.pageSize = pageSize;
 
     int numHeaders = (HEADER_NUM_PAGES * pageSize) / sizeof(PageHeader);
@@ -85,6 +85,24 @@ int initialise_page_header_list() {
         i++;
     }
     return 0;
+}
+
+void display_page_header_list(int limit) {
+    printf("Number of pages allocated: %d\n", pageHeaderList.numPagesAllocated);
+    PageHeader *curr = pageHeaderList.head;
+    int i = 0;
+    printf("----------\n");
+    while (curr && i < limit) {
+        printf("Page: %d\n", i);
+        printf("Page header addr: %p\n", curr);
+        printf("Page free: %d\n", curr->isFree);
+        printf("Number of pages in section: %d\n", curr->numPagesInSection);
+        printf("Page addr: %p\n", curr->pagePtr);
+        printf("----------\n");
+        curr = curr->next;
+        i++;
+    }
+    return;
 }
 
 void* allocate_contiguous_section(PageHeader *firstHeader, int numPages) {
@@ -130,7 +148,7 @@ void* my_malloc(int numBytes) {
         return NULL;
     }
 
-    int numPages = ((numBytes + ALLOC_PREFIX_SIZE) / pageHeaderList.pageSize) + 1;
+    int numPages = ceil_int((numBytes + ALLOC_PREFIX_SIZE), pageHeaderList.pageSize);
     PageHeader *currHeader = pageHeaderList.head;
     PageHeader *searchHeader;
 
@@ -147,6 +165,7 @@ void* my_malloc(int numBytes) {
         if (i == numPages) {
             void* sectionPtr = allocate_contiguous_section(currHeader, numPages);
             if (sectionPtr) {
+                pageHeaderList.numPagesAllocated += numPages;
                 return sectionPtr;
             }
         }
@@ -167,13 +186,19 @@ void* my_malloc(int numBytes) {
 // }
 
 int main() {
-    int* arr1 = (int*)my_malloc(1024);
-    int* arr2 = (int*)my_malloc(1024);
-    int* arr3 = (int*)my_malloc(1024);
-    // printf("%p, %p, diff: %ld\n", arr1, arr2, (void*)arr2 - (void*)arr1);
-    printf("Num pages: %d\n", pageHeaderList.numPages);
-    printf("First page addr: %p\n", pageHeaderList.head->pagePtr);
-    printf("Second page addr: %p\n", pageHeaderList.head->next->pagePtr);
-    printf("Third page addr: %p\n", pageHeaderList.head->next->next->pagePtr);
+    int len = 4097;
+    char* arr1 = (char*)my_malloc(len * sizeof(char));
+    char* arr2 = (char*)my_malloc(len * sizeof(char));
+    char* arr3 = (char*)my_malloc(len * sizeof(char));
+
+    // printf("%p\n", arr1);
+    // printf("%p\n", arr2);
+    // printf("%p\n", arr3);
+    // printf("-------\n");
+
+    // arr1[4096] = 'd';
+    // printf("Here she is: %c\n", arr2[0]);
+
+    display_page_header_list(10);
     return 0;
 }

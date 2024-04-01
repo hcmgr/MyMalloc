@@ -16,3 +16,10 @@ int sys_page_size() {
 
     return page_size;
 }
+
+/**
+ * Peforms integer ceiling operation
+*/
+int ceil_int(int num, int divisor) {
+    return (num + divisor - 1) / divisor;
+}
