@@ -18,8 +18,8 @@ int sys_page_size() {
 }
 
 /**
- * Peforms integer ceiling operation
+ * Peforms integer division and returns the ceiling of the result
 */
-int ceil_int(int num, int divisor) {
+int ceil_div(int num, int divisor) {
     return (num + divisor - 1) / divisor;
 }

@@ -47,3 +47,56 @@ void test_multi_page_alloc() {
     print_green("Passed!\n");
 }
 
+void test_arrays_example() {
+    PageHeaderList* phl = get_page_header_list();
+    int len = phl->pageSize - ALLOC_PREFIX_SIZE;
+    int* a = my_malloc(len * sizeof(int));
+    int* b = my_malloc(len * sizeof(int));
+    int* c = my_malloc(len * sizeof(int));
+    for (int i = 0; i < len; i++) {
+        a[i] = i;
+        b[i] = i+1;
+    }
+    for (int i = 0; i < len; i++) {
+        c[i] = a[i] * b[i];
+    }
+
+    // check c holds correct result for all positions
+    for (int i = 0; i < len; i++) {
+        if (c[i] != a[i] * b[i]) {
+            print_red("Failed: sample incorrect\n");
+        }
+    }
+
+    // check correct number of pages
+    if (phl->numPagesAllocated != 12) {
+        print_red("Failed: wrong number of pages\n");
+        return;
+    }
+    print_green("Passed!\n");
+}
+
+void test_address_prefix() {
+    PageHeaderList* phl = get_page_header_list();
+    int len = 10;
+    int* a = my_malloc(len * sizeof(int));
+    int* b = my_malloc(len * sizeof(int));
+
+    // check address prefix for allocation 'a'
+    void* rawPtr = (void*)a - 8;
+    PageHeader* phPtr = *((PageHeader**)rawPtr);
+    if (phPtr != phl->head) {
+        printf("Failed: incorrect header pointer: a\n");
+        return;
+    }
+
+    // check address prefix for allocation 'b'
+    rawPtr = (void*)b - 8;
+    phPtr = *((PageHeader**)rawPtr);
+    if (phPtr != phl->head->next) {
+        printf("Failed: incorrect header pointer: b\n");
+        return;
+    }
+
+    print_green("Passed!\n");
+}

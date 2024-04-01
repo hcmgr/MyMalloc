@@ -145,7 +145,7 @@ void* my_malloc(int numBytes) {
         return NULL;
     }
 
-    int numPages = ceil_int((numBytes + ALLOC_PREFIX_SIZE), pageHeaderList.pageSize);
+    int numPages = ceil_div((numBytes + ALLOC_PREFIX_SIZE), pageHeaderList.pageSize);
     PageHeader *currHeader = pageHeaderList.head;
     PageHeader *searchHeader;
 
@@ -163,7 +163,10 @@ void* my_malloc(int numBytes) {
             void* sectionPtr = allocate_contiguous_section(currHeader, numPages);
             if (sectionPtr) {
                 pageHeaderList.numPagesAllocated += numPages;
-                return sectionPtr;
+
+                // first 8 bytes reservered for pointer back to pageHeader
+                memcpy(sectionPtr, &currHeader, sizeof(PageHeader*));
+                return sectionPtr + sizeof(PageHeader*);
             }
         }
 

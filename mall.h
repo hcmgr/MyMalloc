@@ -9,7 +9,7 @@
 #define HEADER_NUM_PAGES 4 
 
 // size of prefix pointer in bytes (see my_malloc())
-#define ALLOC_PREFIX_SIZE 0
+#define ALLOC_PREFIX_SIZE 8
 
 /**
  * Singleton PageHeaderList to store the process' list of PageHeader's
