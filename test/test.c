@@ -100,3 +100,13 @@ void test_address_prefix() {
 
     print_green("Passed!\n");
 }
+
+void test_free() {
+    PageHeaderList* phl = get_page_header_list();
+    int len = (phl->pageSize * 2) - ALLOC_PREFIX_SIZE;
+    void *a = my_malloc(len);
+    display_page_header_list(10);
+    printf("---------------------------\n");
+    my_free(a);
+    display_page_header_list(10);
+}

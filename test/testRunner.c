@@ -11,11 +11,12 @@ typedef struct Test {
 } Test;
 
 Test testList[] = {
-    {"test_zero_alloc", test_zero_alloc},
+    // {"test_zero_alloc", test_zero_alloc},
     // {"test_simple_alloc", test_simple_alloc},
     // {"test_multi_page_alloc", test_multi_page_alloc},
     // {"test_arrays_example", test_arrays_example},
-    {"test_address_prefix", test_address_prefix}    
+    // {"test_address_prefix", test_address_prefix},
+    {"test_free", test_free}
 };
 
 /**

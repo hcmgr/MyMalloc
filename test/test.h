@@ -9,3 +9,5 @@ void test_multi_page_alloc();
 void test_arrays_example();
 
 void test_address_prefix();
+
+void test_free();

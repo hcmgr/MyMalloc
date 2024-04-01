@@ -185,6 +185,34 @@ void* my_malloc(int numBytes) {
  * been returned by a previous call to my_malloc().
  */
 int my_free(void *ptr) {
+    // retreive header pointer
+    void* rawPtr = ptr - sizeof(PageHeader*);
+    PageHeader* firstHeader = *((PageHeader**)rawPtr);
+    
+    // ensure phPtr is a valid PageHeader pointer
+    // TODO: probs more validation needed
+    if (firstHeader->numPagesInSection <= 0) {
+        perror("Not head of a page section");
+        return 1;
+    }
+
+    // free all pages in the section
+    PageHeader* currHeader = firstHeader;
+    int i = currHeader->numPagesInSection;
+    while (i > 0 && currHeader->next)  {
+        currHeader->isFree = 1;
+        memset(currHeader->pagePtr, 0, pageHeaderList.pageSize);
+
+        currHeader = currHeader->next;
+        i--;
+    }
+
+    if (i > 0) {
+        perror("Couldn't free all pages");
+        return 1;
+    }
+
+    firstHeader->numPagesInSection = 0;
     return 0;
 
 }
