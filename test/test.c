@@ -110,3 +110,21 @@ void test_free() {
     my_free(a);
     display_page_header_list(10);
 }
+
+void test_fragmented_alloc() {
+    PageHeaderList* phl = get_page_header_list();
+    int len = phl->pageSize + 1; // at least 2 pages
+    int *a = my_malloc(len);
+    int *b = my_malloc(len);
+    int *c = my_malloc(len);
+    my_free(b);
+
+    // try to allocate 2 pages in a 2 page gap
+    int *d = my_malloc(len);
+    my_free(d);
+
+    // try to allocate 3 pages in a 2 page gap
+    len = (phl->pageSize * 2) + 1;
+    int *e = my_malloc(len);
+    display_page_header_list(15);
+}

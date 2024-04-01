@@ -76,6 +76,7 @@ void display_page_header_list(int limit) {
     while (curr && i < limit) {
         printf("Page: %d\n", i);
         printf("Page header addr: %p\n", curr);
+        printf("Next page header addr: %p\n", curr->next);
         printf("Page free: %d\n", curr->isFree);
         printf("Number of pages in section: %d\n", curr->numPagesInSection);
         printf("Page addr: %p\n", curr->pagePtr);
@@ -95,29 +96,28 @@ void* allocate_contiguous_section(PageHeader *firstHeader, int numPages) {
     PageHeader *prevHeader = NULL;
     PageHeader *currHeader = firstHeader;
     int i = 0;
+
     while (i < numPages) {
+        void *newPagePtr = NULL;
 
-        // page already allocated
-        if (currHeader->pagePtr) {
-            continue;
-        }
+        if (!currHeader->pagePtr) {
+            // allocate new page
+            void *newPagePtr = sbrk(pageHeaderList.pageSize);
+            if (newPagePtr == (void*)-1) {
+                perror("Error allocating heap page");
+                return NULL;
+            }
 
-        // allocate new page
-        void *newPagePtr = sbrk(pageHeaderList.pageSize);
-        if (newPagePtr == (void*)-1) {
-            perror("Error allocating heap page");
-            return NULL;
-        }
+            // ensure new page is contiguous with previous
+            if (prevHeader && newPagePtr != (prevHeader->pagePtr + pageHeaderList.pageSize)) {
+                perror("New page not contiguous with previous");
+                return NULL;
+            }
 
-        // ensure new page is contiguous with previous
-        if (prevHeader && newPagePtr != (prevHeader->pagePtr + pageHeaderList.pageSize)) {
-            perror("New page not contiguous with previous");
-            return NULL;
+            currHeader->pagePtr = newPagePtr;
         }
 
         currHeader->isFree = 0;
-        currHeader->pagePtr = newPagePtr;
-
         prevHeader = currHeader;
         currHeader = currHeader->next;
         i++;
@@ -149,10 +149,12 @@ void* my_malloc(int numBytes) {
     PageHeader *currHeader = pageHeaderList.head;
     PageHeader *searchHeader;
 
-    // search for contiguous section of [numPages] page headers
+    // search for [numPages] contiguous free pages to allocate
     int i = 0;
     while (currHeader) {
         searchHeader = currHeader;
+
+        // search forward from current point
         while (searchHeader && searchHeader->isFree && i < numPages) {
             i++;
             searchHeader = searchHeader->next;
@@ -170,7 +172,7 @@ void* my_malloc(int numBytes) {
             }
         }
 
-        // keep searching
+        // unsuccessful - keep searching
         if (searchHeader) {
             currHeader = searchHeader->next;
         }
@@ -212,13 +214,13 @@ int my_free(void *ptr) {
         return 1;
     }
 
+    pageHeaderList.numPagesAllocated -= firstHeader->numPagesInSection;
     firstHeader->numPagesInSection = 0;
+    
     return 0;
-
 }
 
 int main() {
     runAll();
-    // display_page_header_list(10);
     return 0;
 }

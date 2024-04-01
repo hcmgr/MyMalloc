@@ -16,7 +16,8 @@ Test testList[] = {
     // {"test_multi_page_alloc", test_multi_page_alloc},
     // {"test_arrays_example", test_arrays_example},
     // {"test_address_prefix", test_address_prefix},
-    {"test_free", test_free}
+    // {"test_free", test_free},
+    {"test_fragmented_alloc", test_fragmented_alloc}
 };
 
 /**
