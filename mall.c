@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "helper.h"
+#include "test/testRunner.h"
 
 // number of pages taken up by the PageHeaderList
 #define HEADER_NUM_PAGES 4 
@@ -142,6 +143,9 @@ void* allocate_contiguous_section(PageHeader *firstHeader, int numPages) {
 }
 
 void* my_malloc(int numBytes) {
+    if (numBytes == 0) {
+        return NULL;
+    }
 
     // initialise PageHeaderList
     if (pageHeaderList.head == NULL && initialise_page_header_list()) {
@@ -186,19 +190,7 @@ void* my_malloc(int numBytes) {
 // }
 
 int main() {
-    int len = 4097;
-    char* arr1 = (char*)my_malloc(len * sizeof(char));
-    char* arr2 = (char*)my_malloc(len * sizeof(char));
-    char* arr3 = (char*)my_malloc(len * sizeof(char));
-
-    // printf("%p\n", arr1);
-    // printf("%p\n", arr2);
-    // printf("%p\n", arr3);
-    // printf("-------\n");
-
-    // arr1[4096] = 'd';
-    // printf("Here she is: %c\n", arr2[0]);
-
-    display_page_header_list(10);
+    runAll();
+    // display_page_header_list(10);
     return 0;
 }

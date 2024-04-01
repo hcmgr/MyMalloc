@@ -16,13 +16,16 @@ Test testList[] = {
     {"test_distinct_pointers", test_distinct_pointers}
 };
 
-int main() {
+/**
+ * Run all tests
+*/
+int runAll() {
     int num_tests = sizeof(testList) / sizeof(testList[0]);
 
     // Run each test function
     printf("---------------------------\n");
     for (int i = 0; i < num_tests; ++i) {
-        printf("Test: %d\n\n\n", i+1);
+        printf("%d: %s\n\n\n", i+1, testList[i].name);
         testList[i].fn();
         printf("---------------------------\n");
     }
