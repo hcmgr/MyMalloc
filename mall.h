@@ -24,7 +24,7 @@ typedef struct PageHeaderList {
 } PageHeaderList;
 
 /**
- * Structure representing a single page allocated on the heap.
+ * Structure representing a single page allocated on the heap ()
  * 
  * Pages are allocated in sections of N pages, where N >= 1.
  * 

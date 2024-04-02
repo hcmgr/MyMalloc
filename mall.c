@@ -67,13 +67,15 @@ int initialise_page_header_list() {
 
 /**
  * Displays the first [limit] PageHeaders from the PageHeaderList
+ * 
+ * NOTE: a limit of 0 displays all headers
 */
 void display_page_header_list(int limit) {
     printf("Number of pages allocated: %d\n", pageHeaderList.numPagesAllocated);
     PageHeader *curr = pageHeaderList.head;
     int i = 0;
     printf("----------\n");
-    while (curr && i < limit) {
+    while (curr && (limit == 0 || i < limit)) {
         printf("Page: %d\n", i);
         printf("Page header addr: %p\n", curr);
         printf("Next page header addr: %p\n", curr->next);

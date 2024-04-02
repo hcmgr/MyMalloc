@@ -10,6 +10,4 @@ void test_arrays_example();
 
 void test_address_prefix();
 
-void test_free();
-
 void test_fragmented_alloc();

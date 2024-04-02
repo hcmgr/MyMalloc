@@ -16,6 +16,7 @@ void setup() {
 void test_zero_alloc() {
     int *ptr = (int *)my_malloc(0);
     if (ptr != NULL) {
+        my_free(ptr);
         print_green("Failed\n");
         return;
     }
@@ -25,25 +26,37 @@ void test_zero_alloc() {
 void test_simple_alloc() {
     int *ptr = (int *)my_malloc(sizeof(int));
     if (ptr == NULL) {
+        my_free(ptr);
         print_green("Failed\n");
         return;
     }
     ptr[0] = 1;
     if (ptr[0] != 1) {
+        my_free(ptr);
         print_green("Failed\n");
         return;
     }
+    my_free(ptr);
     print_green("Passed!\n");
 }
 
 void test_multi_page_alloc() {
     PageHeaderList* phl = get_page_header_list();
-    void *ptr = my_malloc(phl->pageSize * 3);
+    int numPages = 3;
+    void *ptr = my_malloc(phl->pageSize * numPages);
 
-    if (phl->numPagesAllocated != 3) {
+    // expect 1 more page due to a non-zero ALLOC prefix
+    if (ALLOC_PREFIX_SIZE) {
+        numPages++;
+    }
+    
+    if (phl->numPagesAllocated != numPages) {
+        my_free(ptr);
         print_red("Failed\n");
         return;    
     }
+
+    my_free(ptr);
     print_green("Passed!\n");
 }
 
@@ -64,15 +77,20 @@ void test_arrays_example() {
     // check c holds correct result for all positions
     for (int i = 0; i < len; i++) {
         if (c[i] != a[i] * b[i]) {
+            my_free(a); my_free(b); my_free(c);
             print_red("Failed: sample incorrect\n");
+            return;
         }
     }
 
     // check correct number of pages
     if (phl->numPagesAllocated != 12) {
+        my_free(a); my_free(b); my_free(c);
         print_red("Failed: wrong number of pages\n");
         return;
     }
+
+    my_free(a); my_free(b); my_free(c);
     print_green("Passed!\n");
 }
 
@@ -86,6 +104,7 @@ void test_address_prefix() {
     void* rawPtr = (void*)a - 8;
     PageHeader* phPtr = *((PageHeader**)rawPtr);
     if (phPtr != phl->head) {
+        my_free(a); my_free(b);
         printf("Failed: incorrect header pointer: a\n");
         return;
     }
@@ -94,37 +113,41 @@ void test_address_prefix() {
     rawPtr = (void*)b - 8;
     phPtr = *((PageHeader**)rawPtr);
     if (phPtr != phl->head->next) {
+        my_free(a); my_free(b);
         printf("Failed: incorrect header pointer: b\n");
         return;
     }
 
+    my_free(a); my_free(b);
     print_green("Passed!\n");
-}
-
-void test_free() {
-    PageHeaderList* phl = get_page_header_list();
-    int len = (phl->pageSize * 2) - ALLOC_PREFIX_SIZE;
-    void *a = my_malloc(len);
-    display_page_header_list(10);
-    printf("---------------------------\n");
-    my_free(a);
-    display_page_header_list(10);
 }
 
 void test_fragmented_alloc() {
     PageHeaderList* phl = get_page_header_list();
-    int len = phl->pageSize + 1; // at least 2 pages
-    int *a = my_malloc(len);
-    int *b = my_malloc(len);
-    int *c = my_malloc(len);
+    int onePageSize = (phl->pageSize - ALLOC_PREFIX_SIZE);
+    int twoPageSize = (2*phl->pageSize - ALLOC_PREFIX_SIZE);
+    int *a = my_malloc(onePageSize);
+    int *b = my_malloc(twoPageSize);
+    int *c = my_malloc(onePageSize);
     my_free(b);
 
-    // try to allocate 2 pages in a 2 page gap
-    int *d = my_malloc(len);
+    // allocate 2 pages in the 2 page gap (pages 2 and 3)
+    int *d = my_malloc(twoPageSize);
+    if (phl->head->next->isFree || phl->head->next->isFree) {
+        print_red("Failed\n");
+        return;
+    }
     my_free(d);
 
-    // try to allocate 3 pages in a 2 page gap
-    len = (phl->pageSize * 2) + 1;
-    int *e = my_malloc(len);
-    display_page_header_list(15);
+    // allocate 3 pages (must use pages 5, 6 and 7)
+    int threePageSize = (3*phl->pageSize - ALLOC_PREFIX_SIZE);
+    int *e = my_malloc(threePageSize);
+    if (phl->head->next->next->next->next->isFree || 
+        phl->head->next->next->next->next->next->isFree ||
+        phl->head->next->next->next->next->next->next->isFree) {
+
+        print_red("Failed\n");
+        return;
+    }
+    print_green("Passed!\n");
 }
