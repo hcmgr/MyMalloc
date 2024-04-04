@@ -7,7 +7,8 @@
  * Returns system page size
 */
 int sys_page_size() {
-    int page_size = getpagesize();
+    // int page_size = getpagesize();
+    int page_size = sysconf(_SC_PAGESIZE);
 
     if (page_size == -1) {
         perror("Failed to get page size");
